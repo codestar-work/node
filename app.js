@@ -1,18 +1,16 @@
-// Install required packages by:
-// npm install express ejs mongodb body-parser
-
 "use strict";
 
 let express = require('express');
 let app     = express();
-let parser  = require('body-parser');
+let body    = require('body-parser');
+let cookie  = require('cookie-parser');
 let mongo   = require('mongodb').MongoClient;
 let crypto  = require('crypto');
 let tokens  = [];
 
 app.engine('html', require('ejs').renderFile);
-app.use(parser.urlencoded({extended: true}));
-app.use(CookieManager);
+app.use(body.urlencoded({extended: true}));
+app.use(cookie());
 app.use(express.static('public'));
 
 app.get ('/',         (req, res) => res.render('index.html')    );
@@ -20,12 +18,15 @@ app.get ('/register', (req, res) => res.render('register.html') );
 app.get ('/login',    (req, res) => res.render('login.html')    );
 
 app.get ('/logout',   (req, res) => {
-	delete tokens[req.cookies['Token']];
+	delete tokens[req.cookies.token];
+	delete req.cookies.token;
 	res.redirect('/');
 });
 
 app.get ('/settings',  (req, res) => {
-	if (tokens[req.cookies['Token']] == null) {
+	if (req.cookies == null ||
+		req.cookies.token == null ||
+		tokens[req.cookies.token] == null) {
 		res.redirect('/login');
 	} else {
 		res.render('settings.html');
@@ -57,10 +58,12 @@ app.post('/login', (req, res) => {
 		.find({email:req.body.email, password: encrypt(req.body.password)})
 		.toArray((error, result) => {
 			if (result.length == 1) {
-				tokens[req.cookies['Token']] = result[0];
-				res.redirect('/profile');
+				let token = Date.now() + '-' +
+					parseInt(Math.random() * 1000000000000);
+				tokens[token] = result[0];
+				res.set('set-cookie', 'token=' + token);
+				res.redirect('/settings');
 			} else {
-				delete tokens[req.cookies['Token']];
 				res.redirect('/login');
 			}
 		});
@@ -71,30 +74,4 @@ app.listen(1200);
 
 function encrypt(password) {
 	return crypto.createHash('sha256').update(password).digest('hex');
-}
-
-const COOKIE_TIME = 30 * 60000; // 30 minutes
-function CookieManager(req, res, next) {
-	let time = Date.now();
-
-	if (req.headers['cookie'] != null) {
-		req.cookies = {};
-		let pairs = req.headers['cookie'].split(';');
-		for (let i = 0; i < pairs.length; i++) {
-			let fields = pairs[i].split('=');
-			req.cookies[fields[0]] = fields[1];
-		}
-	}
-
-	if (req.headers['cookie'] == null ||
-		req.cookies['Token'] == null) {
-		req.cookies = {};
-		req.cookies['Token'] = time + '-' +
-			parseInt(Math.random() * 1000000000000);
-	}
-
-	res.set('Set-Cookie', 'Token=' + req.cookies['Token'] +
-		'; Expires=' + new Date(time + COOKIE_TIME).toUTCString());
-
-	next();
 }

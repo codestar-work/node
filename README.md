@@ -4,7 +4,7 @@
 
 - ก่อนใช้งานต้องติดตั้ง packages ที่จำเป็นด้วยคำสั่ง
 ```
-npm install express ejs mongodb body-parser
+npm install express ejs mongodb body-parser cookie-parser
 ```
 - จากนั้นใช้คำสั่ง node app.js แล้วเปิด browser ไปที่ localhost:1200
 
@@ -18,9 +18,11 @@ npm install express ejs mongodb body-parser
 
 let express = require('express');
 let app     = express();
-let parser  = require('body-parser');
+let body    = require('body-parser');
+let cookie  = require('cookie-parser');
 let mongo   = require('mongodb').MongoClient;
 let crypto  = require('crypto');
+
 let tokens  = [];
 
 app.engine('html', require('ejs').renderFile);
@@ -42,7 +44,9 @@ app.get ('/login',    (req, res) => res.render('login.html')    );
 - แต่บางหน้า เช่น /settings ถ้ายังไม่ได้ login ระบบจะ redirect ไปหน้า /login
 ```javascript
 app.get ('/settings',  (req, res) => {
-	if (tokens[req.cookies['Token']] == null) {
+	if (req.cookies == null ||
+		req.cookies.token == null ||
+		tokens[req.cookies.token] == null) {
 		res.redirect('/login');
 	} else {
 		res.render('settings.html');
@@ -50,64 +54,41 @@ app.get ('/settings',  (req, res) => {
 });
 ```
 
-- อย่าลืมต้องมี middleware สำหรับจัดการ Cookie ด้วย
+- การสร้าง Token จากเลขสุ่มและเวลาหน่วยมิลลิวินาที เช่น
 ```javascript
-app.use(CookieManager);
-
-
-function CookieManager(req, res, next) {
-  const COOKIE_TIME = 30 * 60000; // 30 minutes
-	let time = Date.now();
-
-	if (req.headers['cookie'] != null) {
-		req.cookies = {};
-		let pairs = req.headers['cookie'].split(';');
-		for (let i = 0; i < pairs.length; i++) {
-			let fields = pairs[i].split('=');
-			req.cookies[fields[0]] = fields[1];
-		}
-	}
-
-	if (req.headers['cookie'] == null ||
-		req.cookies['Token'] == null) {
-		req.cookies = {};
-		req.cookies['Token'] = time + '-' +
-			parseInt(Math.random() * 1000000000000);
-	}
-
-	res.set('Set-Cookie', 'Token=' + req.cookies['Token'] +
-		'; Expires=' + new Date(time + COOKIE_TIME).toUTCString());
-
-	next();
-}
-
-```
-
-- ใช้ Token โดยสร้างจากเลขสุ่มและเวลาหน่วยมิลลิวินาที เช่น
-```javascript
-req.cookies = {};
-req.cookies['Token'] = Date.now() + '-' +
+let token = Date.now() + '-' +
 	parseInt(Math.random() * 1000000000000);
 ```
 
-- Token มีอายุ 30 นาทีกำหนดโดย
+- การใส่ Token ลงไปใน Cookie
 ```javascript
-res.set('Set-Cookie', 'Token=' + req.cookies['Token'] +
-	'; Expires=' + new Date(time + COOKIE_TIME).toUTCString());
+res.set('Set-Cookie', 'token=' + token);
 ```
 
 
-
-- ใช้ MongoDB ในการทำงานใน collection ชื่อ users
+- ใช้ MongoDB ในการทำงานใน collection ชื่อ users ตัวอย่างการสร้างผู้ใช้ใหม่
+```javascript
+mongo.connect('mongodb://localhost:27017/app1', (error, database) => {
+	database
+	.collection('users')
+	.find({email:req.body.email})
+	.toArray((error, result) => {
+		if (result.length == 0) {
+			database.collection('users').insert({
+				email:    req.body.email,
+				name:     req.body.name,
+				password: encrypt(req.body.password)
+			});
+		}
+		res.redirect('/');
+	});
+});
+```
 
 - ใช้การเข้ารหัส รหัสผ่าน แบบ SHA 256 ด้วยคำสั่ง
 ```javascript
 let crypto  = require('crypto');
 crypto.createHash('sha256').update(password).digest('hex')
 ```
-
-
-
-
 
 - ในอนาคตจะมี Angular 2, MySQL & Bootstrap ด้วย
