@@ -19,7 +19,6 @@ app.get ('/login',    (req, res) => res.render('login.html')    );
 
 app.get ('/logout',   (req, res) => {
 	delete tokens[req.cookies.token];
-	delete req.cookies.token;
 	res.redirect('/');
 });
 
@@ -61,7 +60,7 @@ app.post('/login', (req, res) => {
 				let token = Date.now() + '-' +
 					parseInt(Math.random() * 1000000000000);
 				tokens[token] = result[0];
-				res.set('set-cookie', 'token=' + token);
+				res.cookie('token', token, {maxAge: 60000});
 				res.redirect('/settings');
 			} else {
 				res.redirect('/login');

@@ -26,7 +26,8 @@ let crypto  = require('crypto');
 let tokens  = [];
 
 app.engine('html', require('ejs').renderFile);
-app.use(parser.urlencoded({extended: true}));
+app.use(body.urlencoded({extended: true}));
+app.use(cookie());
 ```
 
 - Static content เก็บไว้ใน folder ชื่อ public ดังนั้นต้องบอกให้ Express.js รู้ด้วยคำสั่ง use()
@@ -62,9 +63,12 @@ let token = Date.now() + '-' +
 
 - การใส่ Token ลงไปใน Cookie
 ```javascript
+res.cookie('token', token, {maxAge: 20 * 60000});
+```
+หรือ
+```javascript
 res.set('Set-Cookie', 'token=' + token);
 ```
-
 
 - ใช้ MongoDB ในการทำงานใน collection ชื่อ users ตัวอย่างการสร้างผู้ใช้ใหม่
 ```javascript
@@ -85,7 +89,7 @@ mongo.connect('mongodb://localhost:27017/app1', (error, database) => {
 });
 ```
 
-- ใช้การเข้ารหัส รหัสผ่าน แบบ SHA 256 ด้วยคำสั่ง
+- ใช้การเข้ารหัส รหัสผ่าน แบบ SHA-256 ด้วยคำสั่ง
 ```javascript
 let crypto  = require('crypto');
 crypto.createHash('sha256').update(password).digest('hex')
