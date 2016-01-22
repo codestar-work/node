@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Angular 2 Live URL: https://code.angularjs.org/2.0.0-beta.1/ -->
+	<script src="/angular2-polyfills.min.js"></script>
+	<script src="/Rx.umd.min.js"></script>
+	<script src="/angular2-all.umd.min.js"></script>
+
+</head>
+<body>
+<i>Hello World</i>
+
+<app></app>
+
+<script>
+	var app = ng.core
+	.Component({
+		selector: 'app',
+		template: '<i>Hello {{name}}</i>'
+	})
+	.Class({
+		constructor: function() {
+			this.name = 'James Bond';
+		}
+	});
+	ng.platform.browser.bootstrap(app);
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Demo</title>
+</head>
+<body>
+	<div id='demo-component'></div>
+
+	<script type='text/babel'>
+		function Demo() {
+			this.render = function() {
+				return <i>Hello {this.props.name}</i>
+			}
+		}
+		var DemoTag = React.createClass(new Demo());
+		React.render(<DemoTag name="James Bond" />,
+			document.getElementById('demo-component'));
+	</script>
+
+<script src="https://fb.me/react-0.14.3.min.js"></script>
+<script src="https://fb.me/react-dom-0.14.3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+
+</body>
+</html>

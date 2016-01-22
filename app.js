@@ -6,6 +6,7 @@ let body    = require('body-parser');
 let cookie  = require('cookie-parser');
 let mongo   = require('mongodb').MongoClient;
 let crypto  = require('crypto');
+let storage = 'mongodb://localhost:27017/app1';
 let tokens  = [];
 
 app.engine('html', require('ejs').renderFile);
@@ -33,7 +34,7 @@ app.get ('/settings',  (req, res) => {
 });
 
 app.post('/register', (req, res) => {
-	mongo.connect('mongodb://localhost:27017/app1', (error, database) => {
+	mongo.connect(storage, (error, database) => {
 		database
 		.collection('users')
 		.find({email:req.body.email})
@@ -51,7 +52,7 @@ app.post('/register', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-	mongo.connect('mongodb://localhost:27017/app1', (error, database) => {
+	mongo.connect(storage, (error, database) => {
 		database
 		.collection('users')
 		.find({email:req.body.email, password: encrypt(req.body.password)})
@@ -68,6 +69,14 @@ app.post('/login', (req, res) => {
 		});
 	});
 });
+
+app.get ('/angular', (req, res) => res.render('angular.html'));
+app.get ('/react'  , (req, res) => res.render('react.html'));
+
+app.use(ErrorHandler);
+function ErrorHandler(req, res, next) {
+	res.status(404).send('File not found');
+}
 
 app.listen(1200);
 
