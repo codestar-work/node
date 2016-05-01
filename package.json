@@ -1,0 +1,16 @@
+{
+  "name": "app",
+  "version": "0.0.1",
+  "description": "Description",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app"
+  },
+  "dependencies": {
+    "express": "*",
+	"ejs": "*",
+	"mongodb": "*",
+	"body-parser": "*",
+	"cookie-parser": "*"
+  }
+}

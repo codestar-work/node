@@ -4,7 +4,7 @@
 
 - ก่อนใช้งานต้องติดตั้ง packages ที่จำเป็นด้วยคำสั่ง
 ```
-npm install express ejs mongodb body-parser cookie-parser
+npm install
 ```
 - จากนั้นใช้คำสั่ง node app.js แล้วเปิด browser ไปที่ localhost:1200
 
